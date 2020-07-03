@@ -1,6 +1,6 @@
 {
   "name": "twitter-lite",
-  "version": "0.14.1",
+  "version": "0.14.0-seb",
   "description": "Tiny, full-featured client/server REST/stream library for the Twitter API",
   "source": "twitter.js",
   "main": "dist/twitter.js",
@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "cross-fetch": "^3.0.0",
-    "crypto-js": "^4.0.0",
+    "crypto-js": "git://github.com/ultrapop-de/crypto-js.git",
     "oauth-1.0a": "^2.2.4",
     "querystring-browser": "^1.0.4"
   },
