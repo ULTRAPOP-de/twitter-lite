@@ -12,7 +12,8 @@ const createOauthClient = ({ key, secret }) => {
     consumer: { key, secret },
     signature_method: 'HMAC-SHA1',
     hash_function(baseString, key) {
-      return crypto.HmacSHA256(baseString, key).toString(crypto.enc.Base64);
+      return crypto.HmacSHA1(baseString, key)
+        .toString(crypto.enc.Base64);
     },
   });
 
