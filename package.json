@@ -29,7 +29,9 @@
   ],
   "dependencies": {
     "cross-fetch": "^3.0.0",
-    "oauth-1.0a": "^2.2.4"
+    "crypto-js": "^4.0.0",
+    "oauth-1.0a": "^2.2.4",
+    "querystring-browser": "^1.0.4"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
@@ -41,7 +43,7 @@
     "flow-bin": "^0.123.0",
     "husky": "^4.2.5",
     "jest": "^25.5.0",
-    "microbundle": "^0.11.0",
+    "microbundle": "^0.12.2",
     "typescript": "^3.8.2"
   },
   "scripts": {

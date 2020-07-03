@@ -1,8 +1,8 @@
-const crypto = require('crypto');
+const crypto = require('crypto-js');
 const OAuth = require('oauth-1.0a');
 const Fetch = require('cross-fetch');
-const querystring = require('querystring');
-const Stream = require('./stream');
+const querystring = require('querystring-browser');
+// const Stream = require('./stream');
 
 const getUrl = (subdomain, endpoint = '1.1') =>
   `https://${subdomain}.twitter.com/${endpoint}`;
@@ -12,10 +12,7 @@ const createOauthClient = ({ key, secret }) => {
     consumer: { key, secret },
     signature_method: 'HMAC-SHA1',
     hash_function(baseString, key) {
-      return crypto
-        .createHmac('sha1', key)
-        .update(baseString)
-        .digest('base64');
+      return crypto.HmacSHA256(baseString, key).toString(crypto.enc.Base64);
     },
   });
 
@@ -129,24 +126,24 @@ class Twitter {
     }
   }
 
-  async getBearerToken() {
-    const headers = {
-      Authorization:
-        'Basic ' +
-        Buffer.from(
-          this.config.consumer_key + ':' + this.config.consumer_secret,
-        ).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    };
+  // async getBearerToken() {
+  //   const headers = {
+  //     Authorization:
+  //       'Basic ' +
+  //       Buffer.from(
+  //         this.config.consumer_key + ':' + this.config.consumer_secret,
+  //       ).toString('base64'),
+  //     'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+  //   };
 
-    const results = await Fetch('https://api.twitter.com/oauth2/token', {
-      method: 'POST',
-      body: 'grant_type=client_credentials',
-      headers,
-    }).then(Twitter._handleResponse);
+  //   const results = await Fetch('https://api.twitter.com/oauth2/token', {
+  //     method: 'POST',
+  //     body: 'grant_type=client_credentials',
+  //     headers,
+  //   }).then(Twitter._handleResponse);
 
-    return results;
-  }
+  //   return results;
+  // }
 
   async getRequestToken(twitterCallbackUrl) {
     const requestData = {
@@ -298,59 +295,59 @@ class Twitter {
       .then(Twitter._handleResponse);
   }
 
-  /**
-   *
-   * @param {string} resource - endpoint, e.g. `statuses/filter`
-   * @param {object} parameters
-   * @returns {Stream}
-   */
-  stream(resource, parameters) {
-    if (this.authType !== 'User')
-      throw new Error('Streams require user context authentication');
+  //   /**
+  //    *
+  //    * @param {string} resource - endpoint, e.g. `statuses/filter`
+  //    * @param {object} parameters
+  //    * @returns {Stream}
+  //    */
+  //   stream(resource, parameters) {
+  //     if (this.authType !== 'User')
+  //       throw new Error('Streams require user context authentication');
 
-    const stream = new Stream();
+  //     const stream = new Stream();
 
-    // POST the request, in order to accommodate long parameter lists, e.g.
-    // up to 5000 ids for statuses/filter - https://developer.twitter.com/en/docs/tweets/filter-realtime/api-reference/post-statuses-filter
-    const requestData = {
-      url: `${getUrl('stream')}/${resource}.json`,
-      method: 'POST',
-    };
-    if (parameters) requestData.data = parameters;
+  //     // POST the request, in order to accommodate long parameter lists, e.g.
+  //     // up to 5000 ids for statuses/filter - https://developer.twitter.com/en/docs/tweets/filter-realtime/api-reference/post-statuses-filter
+  //     const requestData = {
+  //       url: `${getUrl('stream')}/${resource}.json`,
+  //       method: 'POST',
+  //     };
+  //     if (parameters) requestData.data = parameters;
 
-    const headers = this.client.toHeader(
-      this.client.authorize(requestData, this.token),
-    );
+  //     const headers = this.client.toHeader(
+  //       this.client.authorize(requestData, this.token),
+  //     );
 
-    const request = Fetch(requestData.url, {
-      method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: percentEncode(querystring.stringify(parameters)),
-    });
+  //     const request = Fetch(requestData.url, {
+  //       method: 'POST',
+  //       headers: {
+  //         ...headers,
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //       body: percentEncode(querystring.stringify(parameters)),
+  //     });
 
-    request
-      .then(response => {
-        stream.destroy = this.stream.destroy = () => response.body.destroy();
+  //     request
+  //       .then(response => {
+  //         stream.destroy = this.stream.destroy = () => response.body.destroy();
 
-        if (response.ok) {
-          stream.emit('start', response);
-        } else {
-          response._headers = response.headers;  // TODO: see #44 - could omit the line
-          stream.emit('error', response);
-        }
+  //         if (response.ok) {
+  //           stream.emit('start', response);
+  //         } else {
+  //           response._headers = response.headers;  // TODO: see #44 - could omit the line
+  //           stream.emit('error', response);
+  //         }
 
-        response.body
-          .on('data', chunk => stream.parse(chunk))
-          .on('error', error => stream.emit('error', error))  // no point in adding the original response headers
-          .on('end', () => stream.emit('end', response));
-      })
-      .catch(error => stream.emit('error', error));
+  //         response.body
+  //           .on('data', chunk => stream.parse(chunk))
+  //           .on('error', error => stream.emit('error', error))  // no point in adding the original response headers
+  //           .on('end', () => stream.emit('end', response));
+  //       })
+  //       .catch(error => stream.emit('error', error));
 
-    return stream;
-  }
+//     return stream;
+//   }
 }
 
 module.exports = Twitter;
